@@ -1,0 +1,3 @@
+[submodule "supabase-snioe"]
+	path = supabase-snioe
+	url = https://github.com/dscsnu/supabase-snioe
