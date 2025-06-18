@@ -8,6 +8,7 @@ interface CookiePersistentStoreConfig<T> {
     maxAgeSec?: number;
     encode: (data: T) => string;
     decode: (raw: string) => T;
+    secure?: boolean;
 }
 
 const createCookiePersistentStore = <T>({
@@ -16,6 +17,7 @@ const createCookiePersistentStore = <T>({
     maxAgeSec = 60 * 60 * 24 * 365,
     encode,
     decode,
+    secure = false,
 }: CookiePersistentStoreConfig<T>): {
     store: Writable<T | null>;
     set: (data: T | null) => void;
@@ -40,15 +42,17 @@ const createCookiePersistentStore = <T>({
     const setData = (data: T | null): void => {
         if (!browser) return;
 
+        const secureAttributes = secure ? "SameSite=Strict;" : "";
+
         if (data !== null) {
             try {
                 const encoded = encode(data);
-                document.cookie = `${tokenName}=${encoded};path=/;max-age=${maxAgeSec};`;
+                document.cookie = `${tokenName}=${encoded};path=/;max-age=${maxAgeSec};${secureAttributes}`;
             } catch (e) {
                 console.error(`Error encoding data for ${tokenName}: `, e);
             }
         } else {
-            document.cookie = `${tokenName}=null;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`
+            document.cookie = `${tokenName}=null;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT;${secureAttributes}`
         }
 
         store.set(data);

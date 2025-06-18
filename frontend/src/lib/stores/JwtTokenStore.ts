@@ -7,6 +7,7 @@ const {
 } = createCookiePersistentStore<string>({
     tokenName: JWT_TOKEN_NAME,
     ...stringCodec,
+    secure: true,
 });
 
 export { JwtTokenStore, setJwtToken };
