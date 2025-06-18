@@ -25,5 +25,4 @@ pub struct Group {
     pub permissions: Vec<Permission>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct Permission(String);
+type Permission = String;
