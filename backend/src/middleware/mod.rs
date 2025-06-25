@@ -40,7 +40,7 @@ async fn jwt_checker(_req: &poem::Request, bearer: Bearer) -> Result<Claims, poe
 
     let token_data = decode::<Claims>(
         &bearer.token,
-        &DecodingKey::from_secret(CONFIG.jwt_secret.clone().as_bytes()),
+        &DecodingKey::from_secret(CONFIG.jwt_secret.as_bytes()),
         &validation,
     )
     .map_err(|e| match e.kind() {
