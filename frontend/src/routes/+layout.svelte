@@ -1,9 +1,10 @@
 <script lang="ts">
-    import { invalidateAll } from '$app/navigation';
+	import '$lib/styles/app.css';
+    import { invalidate } from '$app/navigation';
     import { setJwtToken } from '$lib/stores/JwtTokenStore.js';
     import { SupaStore, UserStore } from '$lib/stores/SupaStore.js';
     import { onMount } from 'svelte';
-	import '$lib/styles/app.css';
+    import Navbar from '$lib/components/Navbar.svelte';
 
 	let { data, children } = $props();
 	let { supabase, session, user } = $derived(data);
@@ -17,7 +18,7 @@
 				event === 'SIGNED_OUT'
 			) {
 				setJwtToken(null);
-				invalidateAll();
+				invalidate("supabase:auth")
 			}
 
 			if (
@@ -35,4 +36,7 @@
 	});
 </script>
 
-{@render children()}
+<div class={`h-dvh w-dvw flex font-roboto bg-neutral-200 text-neutral-950`}>
+	<Navbar />
+	{@render children()}
+</div>
