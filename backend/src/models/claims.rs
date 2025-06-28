@@ -36,4 +36,12 @@ impl Claims {
             .iter()
             .any(|group| group.permissions.iter().any(|p| p == permission))
     }
+
+    pub fn has_permissions_any(&self, permissions: &[&str]) -> bool {
+        permissions.iter().any(|perm| self.has_permission(perm))
+    }
+
+    pub fn has_permissions_all(&self, permissions: &[&str]) -> bool {
+        permissions.iter().all(|perm| self.has_permission(perm))
+    }
 }
