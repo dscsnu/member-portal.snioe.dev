@@ -56,13 +56,11 @@ async fn jwt_checker(_req: &poem::Request, bearer: Bearer) -> Result<Claims, poe
             details: None,
         })),
 
-        _ => {
-            return JwtErrorResponse::BadRequest(Json(ErrorResponse {
-                code: "JWT_MALFORMED".to_string(),
-                message: "Invalid token format".to_string(),
-                details: Some(e.to_string()),
-            }));
-        }
+        _ => JwtErrorResponse::BadRequest(Json(ErrorResponse {
+            code: "JWT_MALFORMED".to_string(),
+            message: "Invalid token format".to_string(),
+            details: Some(e.to_string()),
+        })),
     })?;
 
     Ok(token_data.claims)
