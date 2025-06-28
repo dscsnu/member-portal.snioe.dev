@@ -1,24 +1,24 @@
 <script lang="ts">
-	import '$lib/styles/app.css';
-    import { invalidate } from '$app/navigation';
-    import { setJwtToken } from '$lib/stores/JwtTokenStore.js';
-    import { SupaStore, UserStore } from '$lib/stores/SupaStore.js';
-    import { onMount } from 'svelte';
-    import Navbar from '$lib/components/Navbar.svelte';
+	import "$lib/styles/app.css";
+	import { invalidate } from "$app/navigation";
+	import { setJwtToken } from "$lib/stores/JwtTokenStore.js";
+	import { SupaStore, UserStore } from "$lib/stores/SupaStore.js";
+	import { onMount } from "svelte";
+	import Navbar from "$lib/components/Navbar.svelte";
 
 	let { data, children } = $props();
 	let { supabase, session, user } = $derived(data);
 
 	onMount(() => {
 		const {
-			data: { subscription }
+			data: { subscription },
 		} = supabase.auth.onAuthStateChange((event, newSession) => {
 			if (
 				newSession?.expires_at !== session?.expires_at ||
-				event === 'SIGNED_OUT'
+				event === "SIGNED_OUT"
 			) {
 				setJwtToken(null);
-				invalidate("supabase:auth")
+				invalidate("supabase:auth");
 			}
 
 			if (

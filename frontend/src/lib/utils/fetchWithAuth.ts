@@ -14,7 +14,7 @@ export const fetchWithAuthBrowser = async (route: string, options: FetchOptions 
     const jwtToken = get(JwtTokenStore);
     // remove all / from start
     const cleanedRoute = route.replace(/^\/+/, "");
-    
+
     return fetch(`${CLEANED_API_URL}/${cleanedRoute}`, {
         ...options,
         headers: {
