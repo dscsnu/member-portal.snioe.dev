@@ -27,3 +27,13 @@ pub struct Group {
 }
 
 type Permission = String;
+
+impl Claims {
+    pub fn has_permission(&self, permission: &str) -> bool {
+        self.app_metadata
+            .custom_claims
+            .groups
+            .iter()
+            .any(|group| group.permissions.iter().any(|p| p == permission))
+    }
+}

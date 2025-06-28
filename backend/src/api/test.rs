@@ -1,10 +1,10 @@
-use super::ApiTags;
-use crate::{middleware::JwtAuth, models::claims::Claims};
-
 use poem_openapi::{
     Object, OpenApi,
     payload::{Json, PlainText},
 };
+
+use super::ApiTags;
+use crate::{middleware::JwtAuth, models::claims::Claims};
 
 #[derive(Object)]
 struct EchoClaimsResponse {

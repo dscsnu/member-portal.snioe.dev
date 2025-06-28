@@ -1,8 +1,8 @@
-use crate::CONFIG;
-use crate::models::claims::Claims;
-
 use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode, errors::ErrorKind};
 use poem_openapi::{ApiResponse, Object, SecurityScheme, auth::Bearer, payload::Json};
+
+use crate::CONFIG;
+use crate::models::claims::Claims;
 
 #[derive(SecurityScheme)]
 #[oai(
