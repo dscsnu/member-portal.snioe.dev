@@ -24,7 +24,9 @@
 		"vite-plugin-devtools-json": "^0.2.0"
 	},
 	"dependencies": {
+		"@lucide/svelte": "^0.524.0",
 		"@supabase/ssr": "^0.6.1",
-		"@supabase/supabase-js": "^2.50.0"
+		"@supabase/supabase-js": "^2.50.0",
+		"bits-ui": "^2.8.10"
 	}
 }
