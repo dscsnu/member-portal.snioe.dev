@@ -1,6 +1,7 @@
 use poem::{Result, error::InternalServerError, web::Data};
 use poem_openapi::{ApiResponse, Object, OpenApi, payload::Json};
 use serde::Deserialize;
+use uuid::Uuid;
 
 use super::ApiTags;
 use crate::{AppState, middleware::JwtAuth, models::Tenure};
@@ -15,6 +16,22 @@ pub struct CreateTenureRequest {
 enum CreateTenureResponse {
     #[oai(status = 201)]
     Created(Json<Tenure>),
+
+    #[oai(status = 403)]
+    Forbidden(Json<String>),
+}
+
+#[derive(Debug, Deserialize, Object)]
+pub struct PutTenureRequest {
+    pub id: Uuid,
+    pub year: i32,
+    pub is_active: bool,
+}
+
+#[derive(ApiResponse)]
+enum PutTenureResponse {
+    #[oai(status = 200)]
+    Put(Json<Tenure>),
 
     #[oai(status = 403)]
     Forbidden(Json<String>),
@@ -68,5 +85,37 @@ impl TenureApi {
         .map_err(InternalServerError)?;
 
         Ok(CreateTenureResponse::Created(Json(tenure)))
+    }
+
+    #[oai(path = "/tenure", method = "put")]
+    async fn put_tenure(
+        &self,
+        auth: JwtAuth,
+        pool: Data<&AppState>,
+        data: Json<PutTenureRequest>,
+    ) -> Result<PutTenureResponse> {
+        if !auth.0.has_permission("member-portal.tenure.update") {
+            return Ok(PutTenureResponse::Forbidden(Json(
+                "Insufficient Permissions".to_string(),
+            )));
+        }
+
+        let tenure = sqlx::query_as!(
+            Tenure,
+            r#"
+                UPDATE tenure
+                SET year = $2, is_active = $3
+                WHERE id = $1
+                RETURNING id, year, is_active
+            "#,
+            data.id,
+            data.year,
+            data.is_active
+        )
+        .fetch_one(&*pool.db)
+        .await
+        .map_err(InternalServerError)?;
+
+        Ok(PutTenureResponse::Put(Json(tenure)))
     }
 }
