@@ -2,7 +2,7 @@ use poem::{EndpointExt, Route, Server, listener::TcpListener, middleware::Cors};
 use poem_openapi::OpenApiService;
 use std::sync::Arc;
 
-use backend::{AppState, TenureApi, TestApi, create_db_pool};
+use backend::{AppState, TenureApi, create_db_pool};
 
 #[tokio::main]
 async fn main() {
@@ -11,7 +11,7 @@ async fn main() {
         db: Arc::new(db_pool),
     };
 
-    let api_service = OpenApiService::new((TestApi, TenureApi), "evelynn.place-backend", "1.0")
+    let api_service = OpenApiService::new(TenureApi, "evelynn.place-backend", "1.0")
         .server("http://localhost:3000");
     let ui = api_service.swagger_ui();
 
