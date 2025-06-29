@@ -1,6 +1,7 @@
 <script lang="ts">
     import { page } from "$app/state";
     import { Boxes, Calendar, House, IdCard, Users } from "@lucide/svelte";
+    import { Button } from "bits-ui";
     import Auth from "$lib/components/Auth.svelte";
 
     const internalAnchors = [
@@ -30,49 +31,48 @@
         },
         {
             id: 4,
-            display: "Edit Profile Card",
-            href: "/profile-card",
+            display: "Edit Member Card",
+            href: "/member-card",
             icon: IdCard,
         },
     ];
 </script>
 
 <nav
-    class={`h-dvh w-[300px] flex flex-col gap-4 p-4 bg-slate-950 text-neutral-400`}
+    class={`h-dvh min-w-[325px] flex flex-col gap-4 text-neutral-400 border-r-2 border-neutral-600`}
 >
-    <hgroup class={`flex items-center gap-2 font-montserrat font-semibold`}>
+    <hgroup
+        class={`h-[75px] border-b-2 border-neutral-600 flex justify-center items-center gap-2 font-semibold`}
+    >
         <img
             alt="GDSC Logo"
             src="/assets/images/gdsc-logo.png"
-            class={`h-[36px] aspect-video`}
+            class={`h-[24px] aspect-video`}
         />
 
-        <div class={`flex flex-col`}>
-            <h1>GDSC - SNIoE</h1>
-            <h2>Member Portal</h2>
-        </div>
+        <h1 class={`w-max`}>GDSC - SNIoE Member Portal</h1>
     </hgroup>
 
-    <ul class={`flex flex-col items-center gap-2 mt-8`}>
+    <ul class={`flex flex-col items-center gap-2 px-4`}>
         {#each internalAnchors as anchor (anchor.id)}
             {@const Icon = anchor.icon}
             {@const currentPath = page.url.pathname}
             <li class={`w-full`}>
-                <a
+                <Button.Root
                     data-currentpage={currentPath === anchor.href ||
                         currentPath.startsWith(`${anchor.href}/`)}
                     href={anchor.href}
-                    class={`w-full flex justify-start items-center gap-2 px-2 py-2 data-[currentpage="true"]:bg-slate-900/80 bg-slate-900/20 hover:bg-slate-800/40 rounded-md border-2 data-[currentpage="true"]:border-green-900 border-slate-800 transition-colors duration-300`}
+                    class={`w-full flex justify-start items-center gap-2 px-2 py-2 data-[currentpage="true"]:bg-neutral-800/40 hover:bg-neutral-800/40 rounded-md transition-colors duration-300`}
                 >
                     <Icon />
                     <p>{anchor.display}</p>
-                </a>
+                </Button.Root>
             </li>
         {/each}
     </ul>
 
-    <div class={`flex flex-col flex-grow justify-end gap-4`}>
-        <hr class={`border-slate-900 mt-10`} />
+    <div class={`flex flex-col flex-grow justify-end px-4 pb-4`}>
+        <hr class={`border-neutral-600 mb-3`} />
 
         <Auth />
     </div>

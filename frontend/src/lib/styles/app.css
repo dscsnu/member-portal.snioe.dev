@@ -1,16 +1,42 @@
 @import 'tailwindcss';
+@plugin "tailwindcss-animate";
 
 @theme {
-    --font-roboto: 'Roboto', sans-serif;
-    --font-montserrat: 'Montserrat', sans-serif;
+	--font-inter: 'Inter', sans-serif;
+	--font-jetbrains: 'JetBrains Mono', monospace;
 
-    --font-weight-thin: 100;
-	--font-weight-extralight : 200;
-	--font-weight-light : 300;
-	--font-weight-regular : 400;
-	--font-weight-medium : 500;
-	--font-weight-semibold : 600;
-	--font-weight-bold : 700;
-	--font-weight-extrabold : 800;
-	--font-weight-black : 900;
+	--font-weight-thin: 100;
+	--font-weight-extralight: 200;
+	--font-weight-light: 300;
+	--font-weight-regular: 400;
+	--font-weight-medium: 500;
+	--font-weight-semibold: 600;
+	--font-weight-bold: 700;
+	--font-weight-extrabold: 800;
+	--font-weight-black: 900;
+}
+
+@theme inline {
+	--animate-fade-in: fade-in 0.2s ease;
+	--animate-fade-out: fade-out 0.15s ease;
+
+	@keyframes fade-in {
+		from {
+			opacity: 0;
+		}
+
+		to {
+			opacity: 1;
+		}
+	}
+
+	@keyframes fade-out {
+		from {
+			opacity: 1;
+		}
+
+		to {
+			opacity: 0;
+		}
+	}
 }

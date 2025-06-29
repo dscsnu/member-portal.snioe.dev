@@ -27,7 +27,7 @@
 
         <Button.Root
             onclick={() => handleSignOut()}
-            class={`w-full flex justify-center gap-2 border-2 border-slate-800 px-4 py-2 rounded-sm bg-slate-900/20 hover:bg-slate-800/40 transition-colors duration-300`}
+            class={`w-full flex justify-center gap-2 border-2 hover:border-red-500 border-neutral-800 px-4 py-2 rounded-sm transition-colors duration-300`}
         >
             {@render googleSvg()}
             <p>Sign Out</p>
@@ -36,7 +36,7 @@
 {:else}
     <Button.Root
         onclick={() => handleSignIn()}
-        class={`w-full flex justify-center gap-2 border-2 border-slate-800 px-4 py-2 rounded-sm bg-slate-900/20 hover:bg-slate-800/40 transition-colors duration-300`}
+        class={`w-full flex justify-center gap-2 border-2 hover:border-green-400 border-neutral-800 px-4 py-2 rounded-sm transition-colors duration-300`}
     >
         {@render googleSvg()}
         <p>Sign In</p>
@@ -46,9 +46,8 @@
 {#snippet googleSvg()}
     <svg
         xmlns="http://www.w3.org/2000/svg"
-        height="24"
+        class={`h-[24px] aspect-square`}
         viewBox="0 0 24 24"
-        width="24"
     >
         <path
             d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"

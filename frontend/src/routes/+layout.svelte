@@ -36,7 +36,7 @@
 	});
 </script>
 
-<div class={`h-dvh w-dvw flex font-roboto bg-neutral-200 text-neutral-950`}>
+<div class={`h-dvh w-dvw flex font-jetbrains bg-neutral-950 text-neutral-100`}>
 	<Navbar />
 	{@render children()}
 </div>
