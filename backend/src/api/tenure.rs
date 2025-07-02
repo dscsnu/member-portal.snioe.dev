@@ -71,17 +71,9 @@ pub struct TenureApi;
 impl TenureApi {
     #[oai(path = "/tenure", method = "get")]
     async fn get_all_tenures(&self, state: Data<&AppState>) -> Result<Json<Vec<Tenure>>> {
-        let tenures: Vec<Tenure> = sqlx::query_as!(
-            Tenure,
-            r#"
-                SELECT id, year, is_active
-                FROM tenure
-                ORDER BY year DESC
-            "#
-        )
-        .fetch_all(&*state.db)
-        .await
-        .map_err(InternalServerError)?;
+        let tenures = Tenure::get_all(&*state.db)
+            .await
+            .map_err(InternalServerError)?;
 
         Ok(Json(tenures))
     }
@@ -102,20 +94,11 @@ impl TenureApi {
 
         let mut tx = state.db.begin().await.map_err(InternalServerError)?;
 
-        let year_exists = sqlx::query_scalar!(
-            r#"
-                SELECT EXISTS (
-                    SELECT 1 FROM tenure
-                    WHERE year = $1
-                )
-            "#,
-            data.year
-        )
-        .fetch_one(&mut *tx)
-        .await
-        .map_err(InternalServerError)?;
+        let year_exists = Tenure::is_year_taken_by_other(&mut *tx, data.year.clone(), None)
+            .await
+            .map_err(InternalServerError)?;
 
-        if year_exists.unwrap_or(false) {
+        if year_exists {
             tx.rollback().await.map_err(InternalServerError)?;
             return Ok(CreateTenureResponse::Conflict(Json(ErrorResponse {
                 code: "DUPLICATE_YEAR".to_string(),
@@ -125,19 +108,11 @@ impl TenureApi {
         }
 
         if data.is_active {
-            let has_other_active_tenure = sqlx::query_scalar!(
-                r#"
-                    SELECT EXISTS (
-                        SELECT 1 FROM tenure
-                        WHERE is_active = TRUE
-                    )
-                "#,
-            )
-            .fetch_one(&mut *tx)
-            .await
-            .map_err(InternalServerError)?;
+            let has_active_tenure = Tenure::has_active_tenure(&mut *tx, None)
+                .await
+                .map_err(InternalServerError)?;
 
-            if has_other_active_tenure.unwrap_or(false) {
+            if has_active_tenure {
                 tx.rollback().await.map_err(InternalServerError)?;
                 return Ok(CreateTenureResponse::Conflict(Json(ErrorResponse {
                     code: "INVALID ACTION".to_string(),
@@ -147,19 +122,9 @@ impl TenureApi {
             }
         }
 
-        let tenure = sqlx::query_as!(
-            Tenure,
-            r#"
-               INSERT INTO tenure (year, is_active)
-               VALUES ($1, $2)
-               RETURNING id, year, is_active 
-            "#,
-            data.year,
-            data.is_active,
-        )
-        .fetch_one(&mut *tx)
-        .await
-        .map_err(InternalServerError)?;
+        let tenure = Tenure::create(&mut *tx, data.year.clone(), data.is_active.clone())
+            .await
+            .map_err(InternalServerError)?;
 
         tx.commit().await.map_err(InternalServerError)?;
 
@@ -182,20 +147,11 @@ impl TenureApi {
 
         let mut tx = state.db.begin().await.map_err(InternalServerError)?;
 
-        let tenure_exists = sqlx::query_scalar!(
-            r#"
-                SELECT EXISTS (
-                    SELECT 1 FROM tenure
-                    WHERE id = $1
-                )
-            "#,
-            data.id
-        )
-        .fetch_one(&mut *tx)
-        .await
-        .map_err(InternalServerError)?;
+        let tenure_exists = Tenure::exists_by_id(&mut *tx, data.id)
+            .await
+            .map_err(InternalServerError)?;
 
-        if !tenure_exists.unwrap_or(false) {
+        if !tenure_exists {
             tx.rollback().await.map_err(InternalServerError)?;
             return Ok(PutTenureResponse::NotFound(Json(ErrorResponse {
                 code: "TENURE_NOT_FOUND".to_string(),
@@ -204,21 +160,12 @@ impl TenureApi {
             })));
         }
 
-        let year_taken_by_other = sqlx::query_scalar!(
-            r#"
-                SELECT EXISTS (
-                    SELECT 1 FROM tenure
-                    WHERE year = $1 AND id != $2
-                )
-            "#,
-            data.year,
-            data.id
-        )
-        .fetch_one(&mut *tx)
-        .await
-        .map_err(InternalServerError)?;
+        let year_taken_by_other =
+            Tenure::is_year_taken_by_other(&mut *tx, data.year, Some(data.id))
+                .await
+                .map_err(InternalServerError)?;
 
-        if year_taken_by_other.unwrap_or(false) {
+        if year_taken_by_other {
             tx.rollback().await.map_err(InternalServerError)?;
             return Ok(PutTenureResponse::Conflict(Json(ErrorResponse {
                 code: "DUPLICATE_YEAR".to_string(),
@@ -228,20 +175,11 @@ impl TenureApi {
         }
 
         if data.is_active {
-            let has_other_active_tenure = sqlx::query_scalar!(
-                r#"
-                    SELECT EXISTS(
-                        SELECT 1 FROM tenure
-                        WHERE is_active = TRUE AND id != $1
-                    )
-                "#,
-                data.id,
-            )
-            .fetch_one(&mut *tx)
-            .await
-            .map_err(InternalServerError)?;
+            let has_other_active_tenure = Tenure::has_active_tenure(&mut *tx, Some(data.id))
+                .await
+                .map_err(InternalServerError)?;
 
-            if has_other_active_tenure.unwrap_or(false) {
+            if has_other_active_tenure {
                 tx.rollback().await.map_err(InternalServerError)?;
                 return Ok(PutTenureResponse::Conflict(Json(ErrorResponse {
                     code: "INVALID ACTION".to_string(),
@@ -251,21 +189,9 @@ impl TenureApi {
             }
         }
 
-        let tenure = sqlx::query_as!(
-            Tenure,
-            r#"
-                UPDATE tenure
-                SET year = $2, is_active = $3
-                WHERE id = $1
-                RETURNING id, year, is_active
-            "#,
-            data.id,
-            data.year,
-            data.is_active
-        )
-        .fetch_one(&mut *tx)
-        .await
-        .map_err(InternalServerError)?;
+        let tenure = Tenure::update(&mut *tx, data.id, data.year, data.is_active)
+            .await
+            .map_err(InternalServerError)?;
 
         tx.commit().await.map_err(InternalServerError)?;
 
@@ -311,20 +237,11 @@ impl TenureApi {
         let tenure = tenure.unwrap();
 
         if tenure.is_active {
-            let other_active_exists = sqlx::query_scalar!(
-                r#"
-                    SELECT EXISTS (
-                        SELECT 1 FROM tenure
-                        WHERE is_active = TRUE AND id != $1
-                    )
-                "#,
-                tenure.id
-            )
-            .fetch_one(&mut *tx)
-            .await
-            .map_err(InternalServerError)?;
+            let other_active_exists = Tenure::has_active_tenure(&mut *tx, Some(data.id))
+                .await
+                .map_err(InternalServerError)?;
 
-            if !other_active_exists.unwrap_or(false) {
+            if !other_active_exists {
                 tx.rollback().await.map_err(InternalServerError)?;
                 return Ok(DeleteTenureResponse::Conflict(Json(ErrorResponse {
                     code: "LAST_ACTIVE_TENURE".to_string(),
@@ -336,16 +253,9 @@ impl TenureApi {
             }
         }
 
-        sqlx::query!(
-            r#"
-                DELETE FROM tenure
-                WHERE id = $1
-            "#,
-            data.id
-        )
-        .execute(&mut *tx)
-        .await
-        .map_err(InternalServerError)?;
+        Tenure::delete(&mut *tx, data.id)
+            .await
+            .map_err(InternalServerError)?;
 
         tx.commit().await.map_err(InternalServerError)?;
 
