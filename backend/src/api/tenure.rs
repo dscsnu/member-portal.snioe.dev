@@ -4,7 +4,7 @@ use serde::Deserialize;
 use uuid::Uuid;
 
 use super::{ApiTags, ErrorResponse};
-use crate::{AppState, middleware::JwtAuth, models::Tenure};
+use crate::{AppState, JwtAuth, models::Tenure, require_permissions};
 
 #[derive(Debug, Deserialize, Object)]
 pub struct CreateTenureRequest {
@@ -70,7 +70,7 @@ pub struct TenureApi;
 #[OpenApi(tag = "ApiTags::Tenure")]
 impl TenureApi {
     #[oai(path = "/tenure", method = "get")]
-    async fn get_all_tenures(&self, pool: Data<&AppState>) -> Result<Json<Vec<Tenure>>> {
+    async fn get_all_tenures(&self, state: Data<&AppState>) -> Result<Json<Vec<Tenure>>> {
         let tenures: Vec<Tenure> = sqlx::query_as!(
             Tenure,
             r#"
@@ -79,7 +79,7 @@ impl TenureApi {
                 ORDER BY year DESC
             "#
         )
-        .fetch_all(&*pool.db)
+        .fetch_all(&*state.db)
         .await
         .map_err(InternalServerError)?;
 
@@ -90,18 +90,17 @@ impl TenureApi {
     async fn create_tenure(
         &self,
         auth: JwtAuth,
-        pool: Data<&AppState>,
+        state: Data<&AppState>,
         data: Json<CreateTenureRequest>,
     ) -> Result<CreateTenureResponse> {
-        if !auth.0.has_permission("member-portal.tenure.create") {
-            return Ok(CreateTenureResponse::Forbidden(Json(ErrorResponse {
-                code: "UNAUTHORIZED".to_string(),
-                message: "Insufficient permissions".to_string(),
-                details: Some("Missing Permission(s): [member-portal.tenure.create]".to_string()),
-            })));
-        }
+        require_permissions!(
+            all,
+            auth,
+            ["member-portal.tenure.create"],
+            CreateTenureResponse::Forbidden
+        );
 
-        let mut tx = pool.db.begin().await.map_err(InternalServerError)?;
+        let mut tx = state.db.begin().await.map_err(InternalServerError)?;
 
         let year_exists = sqlx::query_scalar!(
             r#"
@@ -171,18 +170,17 @@ impl TenureApi {
     async fn put_tenure(
         &self,
         auth: JwtAuth,
-        pool: Data<&AppState>,
+        state: Data<&AppState>,
         data: Json<PutTenureRequest>,
     ) -> Result<PutTenureResponse> {
-        if !auth.0.has_permission("member-portal.tenure.update") {
-            return Ok(PutTenureResponse::Forbidden(Json(ErrorResponse {
-                code: "UNAUTHORIZED".to_string(),
-                message: "Insufficient permissions".to_string(),
-                details: Some("Missing Permission(s): [member-portal.tenure.update]".to_string()),
-            })));
-        }
+        require_permissions!(
+            all,
+            auth,
+            ["member-portal.tenure.update"],
+            PutTenureResponse::Forbidden
+        );
 
-        let mut tx = pool.db.begin().await.map_err(InternalServerError)?;
+        let mut tx = state.db.begin().await.map_err(InternalServerError)?;
 
         let tenure_exists = sqlx::query_scalar!(
             r#"
@@ -278,18 +276,17 @@ impl TenureApi {
     async fn delete_tenure(
         &self,
         auth: JwtAuth,
-        pool: Data<&AppState>,
+        state: Data<&AppState>,
         data: Json<DeleteTenureRequest>,
     ) -> Result<DeleteTenureResponse> {
-        if !auth.0.has_permission("member-portal.tenure.delete") {
-            return Ok(DeleteTenureResponse::Forbidden(Json(ErrorResponse {
-                code: "UNAUTHORIZED".to_string(),
-                message: "Insufficient permissions".to_string(),
-                details: Some("Missing Permission(s): [member-portal.tenure.delete]".to_string()),
-            })));
-        }
+        require_permissions!(
+            all,
+            auth,
+            ["member-portal.tenure.delete"],
+            DeleteTenureResponse::Forbidden
+        );
 
-        let mut tx = pool.db.begin().await.map_err(InternalServerError)?;
+        let mut tx = state.db.begin().await.map_err(InternalServerError)?;
 
         let tenure = sqlx::query!(
             r#"

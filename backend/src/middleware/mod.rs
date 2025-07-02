@@ -1,7 +1,8 @@
 use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode, errors::ErrorKind};
-use poem_openapi::{ApiResponse, Object, SecurityScheme, auth::Bearer, payload::Json};
+use poem_openapi::{ApiResponse, SecurityScheme, auth::Bearer, payload::Json};
 
 use crate::CONFIG;
+use crate::api::ErrorResponse;
 use crate::models::claims::Claims;
 
 #[derive(SecurityScheme)]
@@ -14,23 +15,12 @@ use crate::models::claims::Claims;
 pub struct JwtAuth(pub Claims);
 
 #[derive(ApiResponse)]
-pub enum JwtErrorResponse {
+enum JwtErrorResponse {
     #[oai(status = 401)]
     Unauthorized(Json<ErrorResponse>),
 
-    #[oai(status = 403)]
-    Forbidden(Json<ErrorResponse>),
-
     #[oai(status = 400)]
     BadRequest(Json<ErrorResponse>),
-}
-
-#[derive(Object)]
-pub struct ErrorResponse {
-    pub code: String,
-    pub message: String,
-    #[oai(skip_serializing_if = "Option::is_none")]
-    pub details: Option<String>,
 }
 
 async fn jwt_checker(_req: &poem::Request, bearer: Bearer) -> Result<Claims, poem::Error> {

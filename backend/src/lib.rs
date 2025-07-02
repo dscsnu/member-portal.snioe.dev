@@ -1,14 +1,12 @@
-mod config;
-pub use config::CONFIG;
-
 mod api;
-pub use api::TenureApi;
+mod config;
+mod middleware;
+mod state;
 
-mod db;
-pub use db::create_db_pool;
-
-pub mod middleware;
+pub mod macros;
 pub mod models;
 
-mod state;
-pub use state::AppState;
+pub use api::TenureApi;
+pub use config::CONFIG;
+pub use middleware::JwtAuth;
+pub use state::{AppState, create_db_pool};
